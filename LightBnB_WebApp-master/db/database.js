@@ -41,7 +41,7 @@ const pool = new Pool({
  * as required by the query. If you get this response in the termina, the
  * connection to the database has been properly established.
  */
-pool.query(`SELECT title FROM properties LIMIT 10;`).then(response => {console.log(response)});
+// pool.query(`SELECT title FROM properties LIMIT 10;`).then(response => {console.log(response)});
 
 
 // QUERYING THE DATABASE
