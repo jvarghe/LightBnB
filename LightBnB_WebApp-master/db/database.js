@@ -1,7 +1,50 @@
+const { Pool } = require("pg");
 const properties = require("./json/properties.json");
 const users = require("./json/users.json");
+const { password } = require("pg/lib/defaults");
 
-/// Users
+
+// CONNECTING TO THE DATABASE
+
+const pool = new Pool({
+  user: "development",
+  password: "development",
+  host: "localhost",
+  database: "lightbnb2024"
+});
+
+
+/* TESTING THE CONNECTION TO THE DATABASE
+ *
+ * To test if the database connection is working, execute `npm run local` in
+ * a terminal and de-comment the line below. The terminal should return this
+ *
+ *    Result {
+ *      command: 'SELECT',
+ *      rowCount: 10,
+ *      oid: null,
+ *      rows:
+ *      [ { title: 'Daily every' },
+ *        { title: 'Magic familiar' },
+ *        { title: 'List least' },
+ *        { title: 'Done game' },
+ *        { title: 'Prepare if' },
+ *        { title: 'Roll stranger' },
+ *        { title: 'Rhyme other' },
+ *        { title: 'Remarkable date' },
+ *        { title: 'Student least' },
+ *        { title: 'Political every' } ],
+ *   ...
+ *   }
+ *
+ * The property titles may be different, but you should see 10 titles returned
+ * as required by the query. If you get this response in the termina, the
+ * connection to the database has been properly established.
+ */
+pool.query(`SELECT title FROM properties LIMIT 10;`).then(response => {console.log(response)});
+
+
+// QUERYING THE DATABASE
 
 /**
  * Get a single user from the database given their email.
