@@ -48,7 +48,6 @@ const pool = new Pool({
 //   .then(response => {console.log(response)});
 
 
-
 // USERS
 
 /**
@@ -58,7 +57,7 @@ const pool = new Pool({
  * @return {Promise<{}>} A promise to the user.
  *
  * The "POST /login" endpoint will call this function; it is expecting the
- * user's name and password.
+ * user's name and password. Test it by logging into the application.
  */
 const getUserWithEmail = function(email) {
 
@@ -97,6 +96,7 @@ const getUserWithEmail = function(email) {
 
 };
 
+
 /**
  * Get a single user from the database given their id.
  * @param {string} id The id of the user.
@@ -105,6 +105,7 @@ const getUserWithEmail = function(email) {
 const getUserWithId = function(id) {
   return Promise.resolve(users[id]);
 };
+
 
 /**
  * Add a new user to the database.
@@ -117,6 +118,7 @@ const addUser = function(user) {
   users[userId] = user;
   return Promise.resolve(user);
 };
+
 
 /// Reservations
 
@@ -137,6 +139,10 @@ const getAllReservations = function(guest_id, limit = 10) {
  * @param {{}} options An object containing query options.
  * @param {*} limit The number of results to return.
  * @return {Promise<[{}]>}  A promise to the properties.
+ *
+ * This query function is invoked by `GET /properties` in `apiRoutes.js`.
+ * Test this function by loading the front page. If frontpage populates itself
+ * (image links may be outdated and dead), then it works.
  */
 const getAllProperties = function(options, limit = 10) {
 
@@ -202,6 +208,8 @@ const addProperty = function(property) {
   return Promise.resolve(property);
 };
 
+
+// EXPORTS
 module.exports = {
   getUserWithEmail,
   getUserWithId,
