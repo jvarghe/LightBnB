@@ -48,22 +48,53 @@ const pool = new Pool({
 //   .then(response => {console.log(response)});
 
 
-/// Users
+
+// USERS
 
 /**
  * Get a single user from the database given their email.
+ *
  * @param {String} email The email of the user.
  * @return {Promise<{}>} A promise to the user.
+ *
+ * The "POST /login" endpoint will call this function; it is expecting the
+ * user's name and password.
  */
 const getUserWithEmail = function(email) {
-  let resolvedUser = null;
-  for (const userId in users) {
-    const user = users[userId];
-    if (user && user.email.toLowerCase() === email.toLowerCase()) {
-      resolvedUser = user;
-    }
-  }
-  return Promise.resolve(resolvedUser);
+
+  // ORIGINAL CODE; CALLS THE JSON DATABASE
+
+  // let resolvedUser = null;
+  // for (const userId in users) {
+  //   const user = users[userId];
+  //   if (user && user.email.toLowerCase() === email.toLowerCase()) {
+  //     resolvedUser = user;
+  //   }
+  // }
+  // return Promise.resolve(resolvedUser);
+
+
+  // NEW CODE; CALLS THE DATABASE
+  // Array to hold untrusted input.
+  const inputValuesArray = [email];
+
+  // Pass in the query and the input values as an array.
+  return pool.query(
+
+    `
+    SELECT name, password FROM users
+    WHERE email = $1;
+    `,
+    inputValuesArray
+  )
+    .then((result) => {
+      // console.log(result.rows);
+      return result.rows[0];
+    })
+    .catch(error => {
+      console.log(error.message);
+    });
+
 };
 
 /**
