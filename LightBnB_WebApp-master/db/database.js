@@ -75,13 +75,13 @@ const getUserWithEmail = function(email) {
 
   // NEW CODE; CALLS THE DATABASE
   // Array to hold untrusted input.
-  const inputValuesArray = [email];
+  const inputValuesArray = [email.toLowerCase()];
 
   // Pass in the query and the input values as an array.
   return pool.query(
 
     `
-    SELECT name, password FROM users
+    SELECT * FROM users
     WHERE email = $1;
     `,
     inputValuesArray
