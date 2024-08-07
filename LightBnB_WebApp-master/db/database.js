@@ -149,14 +149,52 @@ const getUserWithId = function(id) {
 
 /**
  * Add a new user to the database.
+ *
  * @param {{name: string, password: string, email: string}} user
  * @return {Promise<{}>} A promise to the user.
+ *
+ * This query function accepts a `user` object that will have `name`, `email`,
+ * and `password` properties. This function should create and insert a new
+ * user into the `users` table using the information from this object.
+ *
+ * To confirm that the user was inserted into the `users` table, this function
+ * will return a promise that resolves to the new user object. This object
+ * should contain the new user's object, including its id after it's been
+ * added to the database.
  */
 const addUser = function(user) {
-  const userId = Object.keys(users).length + 1;
-  user.id = userId;
-  users[userId] = user;
-  return Promise.resolve(user);
+
+  // ORIGINAL CODE; CALLS THE JSON DATABASE
+  // const userId = Object.keys(users).length + 1;
+  // user.id = userId;
+  // users[userId] = user;
+  // return Promise.resolve(user);
+
+
+  // NEW CODE; CALLS THE DATABASE
+  const inputValuesArray = [user.name, user.email, user.password];
+
+  return pool.query(
+
+    // The `RETURNING *;` clause is added to the end of a query to return
+    // the object(s) that were inserted into the database. This new object
+    // should contain the `id` property of the newly inserted user (which
+    // should have been added by the database).
+    `
+      INSERT INTO users (name, email, password)
+      VALUES ($1, $2, $3)
+      RETURNING * ;
+    `,
+    inputValuesArray
+  )
+    .then((result) => {
+      // console.log(result.rows);
+      return result.rows[0];
+    })
+    .catch((error) => {
+      console.log(error.message);
+    });
+
 };
 
 
