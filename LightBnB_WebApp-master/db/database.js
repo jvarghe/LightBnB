@@ -102,31 +102,18 @@ const getUserWithEmail = function(email) {
  * @param {string} id The id of the user.
  * @return {Promise<{}>} A promise to the user.
  *
- * You are supposed to test if this function works properly like this: While
- * the user is logged in, if you refresh the page and user is still logged in,
- * then the page is working properly.
- *
- * However, this function DOES NOT WORK PROPERLY. Refreshing the page makes
- * the user log out.
- *
- * Let's look at what's happening: When the page is refreshed, it seems that
- * the `getMyDetails()` function in `network.js` calls the `POST /me` endpoint
- * in `userRoutes.js`. This endpoint calls the `getUserWithId()` function in
- * `database.js`.
- *
- * I've confirmed that the session cookie is being created properly and is
- * being sent back to the server. However, once the request gets to the
- * `GET /me` endpoint, it doesn't find a `req.session` object, and therefore,
- * no `req.session.userId` value. The request body exists and contains
- * references to the session cookie, but there is no `userId` value in it.
- *
- * The `GET /me` endpoint fails and so, this query function doesn't work.
- * I don't know how to fix this, but the rest of the project seems to work
- * without it.
- *
  * Compass says this query function is the same as the `getUserWithEmail`
  * function, which demands the user's name and password, so I've made this
  * one similar.
+ *
+ * Let's look at what's happening: When the page is refreshed, it seems that
+ * the `getMyDetails()` function in `network.js` calls the `POST /me` endpoint
+ * in `userRoutes.js`. This endpoint calls the `getUserWithId()` query function
+ * in `database.js`.
+ *
+ * You are supposed to test if this function works properly like this: While
+ * the user is logged in, if you refresh the page and user is still logged in,
+ * then the page is working properly.
  */
 const getUserWithId = function(id) {
 
