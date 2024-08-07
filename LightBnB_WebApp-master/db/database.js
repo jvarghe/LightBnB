@@ -204,9 +204,49 @@ const addUser = function(user) {
  * Get all reservations for a single user.
  * @param {string} guest_id The id of the user.
  * @return {Promise<[{}]>} A promise to the reservations.
+ *
+ * Test this page by going to the `Reservations` page. It should show only
+ * two reservations if loading data from the the JSON database, but many
+ * more if drawing from the real one.
  */
 const getAllReservations = function(guest_id, limit = 10) {
-  return getAllProperties(null, 2);
+
+  // ORIGINAL CODE
+  // return getAllProperties(null, 2);
+
+
+  // NEW CODE; CALLS THE DATABASE
+  const inputValuesArray = [guest_id, limit];
+
+  // Note: Instead of specifying the columns you need by hand, you could make
+  // a shorter query by doing this: `SELECT table_name.*`.
+  const query =
+    `
+    SELECT
+      properties.thumbnail_photo_url,
+      reservations.id,
+      properties.title,
+      properties.number_of_bedrooms,
+      properties.number_of_bathrooms,
+      properties.parking_spaces,
+      reservations.start_date,
+      reservations.end_date,
+      avg(rating) as average_rating,
+      properties.cost_per_night
+    FROM reservations
+    JOIN properties ON reservations.property_id = properties.id
+    JOIN property_reviews ON properties.id = property_reviews.property_id
+    WHERE reservations.guest_id = $1
+    GROUP BY properties.id, reservations.id
+    ORDER BY reservations.start_date
+    LIMIT $2;
+  `;
+
+
+  return pool.query(query, inputValuesArray)
+    .then((result) => { return result.rows; })
+    .catch((error) => { console.log(error.message); });
+
 };
 
 
