@@ -248,6 +248,9 @@ const getAllReservations = function(guest_id, limit = 10) {
  * This query function is invoked by `GET /properties` in `apiRoutes.js`.
  * Test this function by loading the front page. If frontpage populates itself
  * (image links may be outdated and dead), then it works.
+ *
+ * This query function is invoked by the `Home`, `Search`, and `My Listings`
+ * page.
  */
 const getAllProperties = function(options, limit = 10) {
 
@@ -260,9 +263,118 @@ const getAllProperties = function(options, limit = 10) {
 
 
   // NEW CODE; CALLS THE DATABASE
+  // Pass arguments for the query as an array. This will sanitize user input
+  // and prevent SQL injection attacks.
+  const queryArguments = [];
 
-  // Pass in the query and the input values as an array.
-  const inputValuesArray = [limit];
+
+  // QUERY STRING
+  // Basic Query Template
+  let query =
+    `
+    SELECT properties.*, avg(property_reviews.rating) as average_rating
+    FROM properties
+    LEFT JOIN property_reviews ON properties.id = property_id
+  `;
+
+  // Print the `options` object to the console for debugging purposes.
+  console.log(options);
+
+
+  // `WHERE` & `HAVING` CLAUSES
+  let whereConditions = ``;
+  let havingConditions = ``;
+
+  // Add the owner ID to the query. The `Search` page and `Home` page don't
+  // need it, but the `My Listings` page does.
+  if (options.owner_id) {
+    queryArguments.push(`${options.owner_id}`);
+    whereConditions += `owner_id = $${queryArguments.length}`;
+  }
+
+
+  // The rest of these `WHERE` clauses are used on the `Search` page.
+  // If the user has specified a city, add it to the query.
+  if (options.city) {
+    if (queryArguments.length > 0) {
+      whereConditions += ` AND `;
+    }
+
+    queryArguments.push(`%${options.city}%`);
+    whereConditions += `city LIKE $${queryArguments.length}`;
+  }
+
+
+  // If the user has specified a minimum price, add it to the query.
+  if (options.minimum_price_per_night) {
+    if (queryArguments.length > 0) {
+      whereConditions += ` AND `;
+    }
+
+    // Recall that the database stores prices in cents; this requires dollar
+    // values to be multiplied by 100.
+    queryArguments.push(`${options.minimum_price_per_night * 100}`);
+    whereConditions += `properties.cost_per_night >= $${queryArguments.length}`;
+  }
+
+
+  // If the user has specified a maximum price, add it to the query.
+  if (options.maximum_price_per_night) {
+    if (queryArguments.length > 0) {
+      whereConditions += ` AND `;
+    }
+
+    queryArguments.push(`${options.maximum_price_per_night * 100}`);
+    whereConditions += `properties.cost_per_night <= $${queryArguments.length}`;
+  }
+
+
+  // If the user has specified a minimum rating, add it to the query.
+  if (options.minimum_rating) {
+    queryArguments.push(`${options.minimum_rating}`);
+    havingConditions +=
+      `AVG(property_reviews.rating) >= $${queryArguments.length}`;
+  }
+
+
+  // COMPILING THE FINAL QUERY
+  // If there are any query arguments, add their conditions to the WHERE clause.
+  // (You won't need this for the `Home` page or the `My Listings` page, only
+  // the `Search` page.)
+  if (whereConditions.length > 0) {
+
+    // Adding double spaces before the `WHERE` clause to align with the first
+    // half of the query. Makes it look much better when you print the query
+    // to the terminal.
+    query += "  " + "WHERE " + whereConditions;
+  }
+
+  // After that, add the GROUP BY clause to the query. You will need this for
+  // all queries.
+  query += "\n    " + "GROUP BY properties.id";
+
+
+  // Add the `HAVING` conditions to the query. (You won't need this for the
+  // `Home` page or the `My Listings` page, only the `Search` page.)
+  if (havingConditions.length > 0) {
+    query += "\n    " + `HAVING ` + havingConditions;
+  }
+
+
+  // Add the `ORDER BY` clause to the query. You will need this for
+  // all queries.
+  query += "\n    " + "ORDER BY properties.cost_per_night";
+
+
+  // Add the `LIMIT` clause to the query. You will need this for
+  // all queries.
+  queryArguments.push(limit);
+  query += "\n    " + `LIMIT $${queryArguments.length};`;
+
+
+  // PRINTING THE QUERY AND ARGUMENTS TO THE TERMINAL (for debugging purposes)
+  console.log(query + `\n   `, queryArguments);
+
 
 
   /* WHY DO WE RETURN A PROMISE FROM `getAllProperties()`?
@@ -286,10 +398,7 @@ const getAllProperties = function(options, limit = 10) {
    *     file, it is chained to `.then`, which can only consume a promise.
    */
 
-  return pool.query(
-    `SELECT * FROM properties LIMIT $1;`,
-    inputValuesArray
-  )
+  return pool.query(query, queryArguments)
     .then((result) => {
       // console.log(result.rows);
       return result.rows;
