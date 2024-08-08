@@ -75,7 +75,7 @@ const getUserWithEmail = function(email) {
 
   // NEW CODE; CALLS THE DATABASE
   // Array to hold untrusted input.
-  const inputValuesArray = [email.toLowerCase()];
+  const queryArguments = [email.toLowerCase()];
 
   // Pass in the query and the input values as an array.
   return pool.query(
@@ -84,7 +84,7 @@ const getUserWithEmail = function(email) {
     SELECT * FROM users
     WHERE email = $1;
     `,
-    inputValuesArray
+    queryArguments
   )
     .then((result) => {
       // console.log(result.rows);
@@ -159,7 +159,11 @@ const addUser = function(user) {
 
 
   // NEW CODE; CALLS THE DATABASE
-  const inputValuesArray = [user.name, user.email, user.password];
+  const queryArguments = [
+    user.name.toLowerCase(),
+    user.email.toLowerCase(),
+    user.password.toLowerCase()
+  ];
 
   return pool.query(
 
@@ -172,7 +176,7 @@ const addUser = function(user) {
       VALUES ($1, $2, $3)
       RETURNING * ;
     `,
-    inputValuesArray
+    queryArguments
   )
     .then((result) => {
       // console.log(result.rows);
@@ -203,7 +207,7 @@ const getAllReservations = function(guest_id, limit = 10) {
 
 
   // NEW CODE; CALLS THE DATABASE
-  const inputValuesArray = [guest_id, limit];
+  const queryArguments = [guest_id, limit];
 
   // Note: Instead of specifying the columns you need by hand, you could make
   // a shorter query by doing this: `SELECT table_name.*`.
@@ -230,7 +234,7 @@ const getAllReservations = function(guest_id, limit = 10) {
   `;
 
 
-  return pool.query(query, inputValuesArray)
+  return pool.query(query, queryArguments)
     .then((result) => { return result.rows; })
     .catch((error) => { console.log(error.message); });
 
