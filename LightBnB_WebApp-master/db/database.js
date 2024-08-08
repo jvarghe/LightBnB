@@ -159,10 +159,12 @@ const addUser = function(user) {
 
 
   // NEW CODE; CALLS THE DATABASE
+  // Add `.toLowerCase()` to the `email` and `name` properties to ensure that
+  // the query is case-insensitive.
   const queryArguments = [
     user.name.toLowerCase(),
     user.email.toLowerCase(),
-    user.password.toLowerCase()
+    user.password
   ];
 
   return pool.query(
