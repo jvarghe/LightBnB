@@ -1,8 +1,9 @@
 // JSON "DATABASE"
-// The project started out with these JSON files simulating a database. But
-// they will be replaced with queries to an actual database.
-const properties = require("./json/properties.json");
-const users = require("./json/users.json");
+// This project started out with these JSON files simulating a database. But
+// they have been replaced with queries to an actual database. If you uncomment
+// the lines below, you can make calls to JSON database again.
+// const properties = require("./json/properties.json");
+// const users = require("./json/users.json");
 
 
 // CONNECTING TO THE POSTGRESQL DATABASE
@@ -159,10 +160,12 @@ const addUser = function(user) {
 
 
   // NEW CODE; CALLS THE DATABASE
+  // Add `.toLowerCase()` to the `email` and `name` properties to ensure that
+  // the query is case-insensitive.
   const queryArguments = [
     user.name.toLowerCase(),
     user.email.toLowerCase(),
-    user.password.toLowerCase()
+    user.password
   ];
 
   return pool.query(
@@ -415,15 +418,79 @@ const getAllProperties = function(options, limit = 10) {
 
 
 /**
- * Add a property to the database
+ * Add a housing property's details to the database.
+ *
  * @param {{}} property An object containing all of the property details.
  * @return {Promise<{}>} A promise to the property.
+ *
+ * This query function will be invoked by `POST properties`. It will receive
+ * a `property` object as its argument. It has a long list of properties
+ * that was entered into the form on the `Create Listing` page. It will return
+ * an object with the new record's data, including the DB-generated `id`.
  */
 const addProperty = function(property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+
+  // ORIGINAL CODE; CALLS THE JSON DATABASE
+  // const propertyId = Object.keys(properties).length + 1;
+  // property.id = propertyId;
+  // properties[propertyId] = property;
+  // return Promise.resolve(property);
+
+
+  // NEW CODE; CALLS THE DATABASE
+  // Break out properties in the `property` object into an array.
+  const queryArguments = [
+    property.owner_id,
+    property.title,
+    property.description,
+    property.thumbnail_photo_url,
+    property.cover_photo_url,
+    property.cost_per_night,
+    property.street,
+    property.city,
+    property.province,
+    property.post_code,
+    property.country,
+    property.parking_spaces,
+    property.number_of_bathrooms,
+    property.number_of_bedrooms
+  ];
+
+
+  const query = `
+  INSERT INTO properties(
+    owner_id,
+    title,
+    description,
+    thumbnail_photo_url,
+    cover_photo_url,
+    cost_per_night,
+    street,
+    city,
+    province,
+    post_code,
+    country,
+    parking_spaces,
+    number_of_bathrooms,
+    number_of_bedrooms
+  )
+  -- Reminder: Values in the database are stored in cents. Therefore, we
+  -- multiply the 'cost_per_night' value by 100.
+  VALUES($1, $2, $3, $4, $5, ($6 * 100), $7, $8, $9, $10, $11, $12, $13, $14)
+  RETURNING *;
+  `;
+
+
+  // QUERY THE DATABASE
+  return pool.query(query, queryArguments)
+    .then((result) => {
+      // console.log(result.rows[0]);
+      return result.rows[0];
+    })
+    .catch((error) => {
+      console.log(error.message);
+    });
+
 };
 
 
