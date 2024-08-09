@@ -484,7 +484,7 @@ const addProperty = function(property) {
   // QUERY THE DATABASE
   return pool.query(query, queryArguments)
     .then((result) => {
-      console.log(result.rows[0]);
+      // console.log(result.rows[0]);
       return result.rows[0];
     })
     .catch((error) => {
